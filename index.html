@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dots &amp; Boxes — MinMax</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div id="settings-screen">
+  <div class="settings-card">
+    <h1 class="logo">Dots <span>&amp;</span> Boxes</h1>
+    <p class="subtitle">MinMax con poda Alpha‑Beta</p>
+
+    <label class="field-label">Tamaño del tablero</label>
+    <div class="size-row" id="size-row"></div>
+    <span class="hint" id="hint-stats">9 cajas · 24 líneas</span>
+
+    <label class="field-label">Modo de juego</label>
+    <div class="mode-row">
+      <button class="mode-btn selected" data-mode="pvp" onclick="seleccionarModo('pvp')">2 Jugadores</button>
+      <button class="mode-btn" data-mode="pve" onclick="seleccionarModo('pve')">Probar MinMax</button>
+    </div>
+
+    <div id="ai-options" style="display:none">
+      <label class="field-label">Tú juegas como</label>
+      <div class="color-row">
+        <button class="color-btn color-blue selected" onclick="seleccionarColorHumano('blue')"><span class="cdot blue-d"></span>Azul (primero)</button>
+        <button class="color-btn color-red" onclick="seleccionarColorHumano('red')"><span class="cdot red-d"></span>Rojo</button>
+      </div>
+    </div>
+
+    <button class="start-btn" onclick="iniciarJuego()">Comenzar</button>
+  </div>
+</div>
+
+<div id="game-screen" class="hidden">
+  <header class="top-bar">
+    <h2 class="title">Dots &amp; Boxes</h2>
+    <button class="btn-outline" onclick="mostrarConfiguracion()">Nueva partida</button>
+  </header>
+
+  <div class="score-panel">
+    <div class="score-card sc-blue" id="sc-blue">
+      <span class="sc-dot blue-d"></span>
+      <div class="sc-info">
+        <span class="sc-name" id="name-blue">Azul</span>
+        <span class="sc-val" id="score-blue">0</span>
+      </div>
+    </div>
+    <div class="status-center">
+      <div id="thinking" class="thinking hidden"><span></span><span></span><span></span></div>
+      <span id="status-text">Turno de Azul</span>
+    </div>
+    <div class="score-card sc-red" id="sc-red">
+      <div class="sc-info">
+        <span class="sc-name" id="name-red">Rojo</span>
+        <span class="sc-val" id="score-red">0</span>
+      </div>
+      <span class="sc-dot red-d"></span>
+    </div>
+  </div>
+
+  <div class="board-wrap">
+    <canvas id="board"></canvas>
+  </div>
+
+  <div id="game-over-bar" class="hidden">
+    <button class="btn-play-again" onclick="mostrarConfiguracion()">Jugar de nuevo</button>
+  </div>
+
+  <footer class="foot">MinMax α‑β · Dots &amp; Boxes</footer>
+</div>
+
+<script src="logicaJuego.js"></script>
+<script src="ui.js"></script>
+</body>
+</html>

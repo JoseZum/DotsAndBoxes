@@ -39,7 +39,7 @@ xdg-open index.html
 
 ## Cómo jugar
 
-1. Elige el **tamaño del tablero** (2×2 hasta 6×6)
+1. Elige el **tamaño del tablero** (2×2 hasta 4x4)
 2. Elige el **modo**: vs IA o 2 jugadores
 3. En modo vs IA, elige tu color (Azul o Rojo)
 4. Haz clic sobre las líneas entre puntos para trazar segmentos
@@ -54,7 +54,6 @@ La IA utiliza **MinMax con poda Alpha‑Beta**. La profundidad de búsqueda se a
 |---------|-------------------|
 | 2×2     | 14                |
 | 3×3     | 8                 |
-| 4×4     | 6                 |
-| 5×5+    | 4                 |
+| 4×4     | 6                 ||
 
 La función de evaluación considera la diferencia de puntos entre jugadores y penaliza dejar cajas con 3 lados expuestas al oponente.

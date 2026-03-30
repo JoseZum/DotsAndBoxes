@@ -4,9 +4,8 @@ function heuristica(estado, jugador) {
 }
 
 // Explora el árbol de movimientos hasta profundidad niveles
-// El maximizador elige el mayor valor el minimizador el menor 
-
-function minmax(estado, profundidad, esMaximizador, jugador) {
+// El maximizador elige el mayor valor el minimizador el menor
+function minmax(estado, profundidad, esMaximizador, jugador, α, β) {
     // Caso base
     if (estado.terminado === true || profundidad === 0) return heuristica(estado, jugador);
 
@@ -16,16 +15,20 @@ function minmax(estado, profundidad, esMaximizador, jugador) {
         var max = -Infinity;
         for (var i = 0; i < movValidos.length; i++) {
             var nuevoEstado = aplicarMovimiento(estado, movValidos[i]);
-            var valor = minmax(nuevoEstado, profundidad - 1, nuevoEstado.turno === jugador, jugador);
+            var valor = minmax(nuevoEstado, profundidad - 1, nuevoEstado.turno === jugador, jugador, α, β);
             if (valor > max) max = valor;
+            if (valor > α) α = valor;
+            if (valor >= β) break;
         }
         return max;
     } else {
         var min = Infinity;
         for (var i = 0; i < movValidos.length; i++) {
             var nuevoEstado = aplicarMovimiento(estado, movValidos[i]);
-            var valor = minmax(nuevoEstado, profundidad - 1, nuevoEstado.turno === jugador, jugador);
+            var valor = minmax(nuevoEstado, profundidad - 1, nuevoEstado.turno === jugador, jugador, α, β);
             if (valor < min) min = valor;
+            if (valor < β) β = valor; 
+            if (valor <= α) break;
         }
         return min;
     }
@@ -41,7 +44,7 @@ function mejorMovimiento(estado, jugador) {
 
     for (var i = 0; i < movValidos.length; i++) {
         var nuevoEstado = aplicarMovimiento(estado, movValidos[i]);
-        var valor = minmax(nuevoEstado, 5, nuevoEstado.turno === jugador, jugador);
+        var valor = minmax(nuevoEstado, 5, nuevoEstado.turno === jugador, jugador, -Infinity, Infinity);
         if (valor > mejorValor) {
             mejorValor = valor;
             mejorMov = movValidos[i];

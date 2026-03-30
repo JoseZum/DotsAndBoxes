@@ -34,17 +34,20 @@ function minmax(estado, profundidad, esMaximizador, jugador, α, β) {
     }
 }
 
+var PROFUNDIDAD_POR_TAMANO = { 2: 14, 3: 8, 4: 6 };
+
 // Punto de entrada: evalúa todos los movimientos posibles y retorna el mejor para la IA
 function mejorMovimiento(estado, jugador) {
     var movValidos = obtenerMovimientos(estado);
     if (movValidos.length === 0) return null;
 
+    var profundidad = PROFUNDIDAD_POR_TAMANO[estado.tamano];
     var mejorValor = -Infinity;
     var mejorMov = null;
 
     for (var i = 0; i < movValidos.length; i++) {
         var nuevoEstado = aplicarMovimiento(estado, movValidos[i]);
-        var valor = minmax(nuevoEstado, 5, nuevoEstado.turno === jugador, jugador, -Infinity, Infinity);
+        var valor = minmax(nuevoEstado, profundidad, nuevoEstado.turno === jugador, jugador, -Infinity, Infinity);
         if (valor > mejorValor) {
             mejorValor = valor;
             mejorMov = movValidos[i];

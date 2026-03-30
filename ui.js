@@ -25,7 +25,7 @@ var canvas, ctx;
 
 (function inicializarBotonesTamano() {
   var fila = document.getElementById('size-row');
-  [2,3,4,5,6].forEach(function(s) {
+  [2,3,4].forEach(function(s) {
     var boton = document.createElement('button');
     boton.className = 'size-btn' + (s === 3 ? ' selected' : '');
     boton.textContent = s + '×' + s;

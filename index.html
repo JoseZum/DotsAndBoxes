@@ -68,8 +68,25 @@
     <canvas id="board"></canvas>
   </div>
 
+  <!-- Barra de estadísticas en vivo -->
+  <div id="stats-bar">
+    <span class="stat-item">
+      Movimientos: <strong id="move-counter-val">0</strong>
+    </span>
+    <span id="ia-time-badge" class="ia-badge"></span>
+  </div>
+
   <div id="game-over-bar" class="hidden">
     <button class="btn-play-again" onclick="mostrarConfiguracion()">Jugar de nuevo</button>
+  </div>
+
+  <!-- Panel de historial de movimientos -->
+  <div id="log-panel">
+    <div id="log-header">
+      Historial de movimientos
+      <span id="log-resumen" style="display:none"></span>
+    </div>
+    <div id="move-log"></div>
   </div>
 
   <footer class="foot">MinMax α‑β · Dots &amp; Boxes</footer>

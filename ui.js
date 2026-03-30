@@ -23,6 +23,11 @@ var jugadorIA = ROJO;
 var bordeResaltado = null;
 var canvas, ctx;
 
+// ── Log de movimientos ────────────────────────────────────────────────────
+var contadorMovimientos = 0;
+var registroMovimientos = [];
+var tiempoInicioPartida = 0;
+
 (function inicializarBotonesTamano() {
   var fila = document.getElementById('size-row');
   [2,3,4].forEach(function(s) {
@@ -57,10 +62,16 @@ function seleccionarColorHumano(color) {
 
 function iniciarJuego() {
   estadoJuego = crearEstado(tamano);
+  contadorMovimientos = 0;
+  registroMovimientos = [];
+  tiempoInicioPartida = performance.now();
   actualizarPuntaje();
   document.getElementById('settings-screen').classList.add('hidden');
   document.getElementById('game-screen').classList.remove('hidden');
   document.getElementById('game-over-bar').classList.add('hidden');
+  limpiarLog();
+  actualizarContador();
+  ocultarTiempoIA();
   inicializarCanvas();
   dibujar();
   if (modo === 'pve' && estadoJuego.turno === jugadorIA) programarIA();
@@ -155,7 +166,11 @@ function mismoBorde(a, b) {
 }
 
 function realizarMovimiento(movimiento) {
+  var jugadorAntes = estadoJuego.turno;
   estadoJuego = aplicarMovimiento(estadoJuego, movimiento);
+  contadorMovimientos++;
+  agregarAlLog(movimiento, jugadorAntes);
+  actualizarContador();
   bordeResaltado = null;
   actualizarPuntaje();
   dibujar();
@@ -166,14 +181,75 @@ function realizarMovimiento(movimiento) {
 function programarIA() {
   mostrarPensando(true);
   setTimeout(function() {
+    var t0 = performance.now();
     var movimiento = mejorMovimiento(estadoJuego, jugadorIA);
+    var t1 = performance.now();
+    var ms = (t1 - t0).toFixed(1);
     mostrarPensando(false);
+    mostrarTiempoIA(ms);
+    console.log('[MinMax] Movimiento calculado en ' + ms + 'ms');
     if (movimiento) realizarMovimiento(movimiento);
   }, 350);
 }
 
 function terminarJuego() {
+  var tiempoTotal = ((performance.now() - tiempoInicioPartida) / 1000).toFixed(1);
   document.getElementById('game-over-bar').classList.remove('hidden');
+  var resumen = document.getElementById('log-resumen');
+  if (resumen) {
+    resumen.textContent = contadorMovimientos + ' movimientos · ' + tiempoTotal + 's';
+    resumen.style.display = 'block';
+  }
+  console.log('[Partida] ' + contadorMovimientos + ' movimientos totales en ' + tiempoTotal + 's');
+}
+
+// ── Helpers de log y timing ───────────────────────────────────────────────
+
+function agregarAlLog(mov, jugador) {
+  var tipoLabel = mov.tipo === 'h' ? 'H' : 'V';
+  var quienLabel = (modo === 'pve')
+    ? (jugador === jugadorIA ? 'IA' : 'Tú')
+    : (jugador === AZUL ? 'Azul' : 'Rojo');
+  var entry = { n: contadorMovimientos, quien: quienLabel, tipo: tipoLabel, fila: mov.fila, col: mov.columna };
+  registroMovimientos.push(entry);
+
+  var logEl = document.getElementById('move-log');
+  if (!logEl) return;
+  var item = document.createElement('div');
+  item.className = 'log-item log-' + (jugador === AZUL ? 'azul' : 'rojo');
+  item.innerHTML =
+    '<span class="log-num">#' + entry.n + '</span>' +
+    '<span class="log-quien">' + entry.quien + '</span>' +
+    '<span class="log-mov">' + tipoLabel + '(' + entry.fila + ',' + entry.col + ')</span>';
+  logEl.appendChild(item);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function limpiarLog() {
+  var logEl = document.getElementById('move-log');
+  if (logEl) logEl.innerHTML = '';
+  var resumen = document.getElementById('log-resumen');
+  if (resumen) resumen.style.display = 'none';
+}
+
+function actualizarContador() {
+  var el = document.getElementById('move-counter-val');
+  if (el) el.textContent = contadorMovimientos;
+}
+
+function mostrarTiempoIA(ms) {
+  var badge = document.getElementById('ia-time-badge');
+  if (badge) {
+    badge.textContent = 'IA: ' + ms + ' ms';
+    badge.classList.add('visible');
+    clearTimeout(badge._timeout);
+    badge._timeout = setTimeout(function() { badge.classList.remove('visible'); }, 3000);
+  }
+}
+
+function ocultarTiempoIA() {
+  var badge = document.getElementById('ia-time-badge');
+  if (badge) badge.classList.remove('visible');
 }
 
 function actualizarPuntaje() {

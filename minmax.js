@@ -1,6 +1,18 @@
-// Retorna puntos del jugador menos puntos del oponente, positivo = ventaja para jugador, negativo = desventaja
+// Diferencia de puntos (×10) penalizada por cajas con 3 lados (el oponente puede capturarlas).
+// Esto hace que la IA evite dejar cajas "regaladas" al rival.
 function heuristica(estado, jugador) {
-    return estado.puntos[jugador] - estado.puntos[jugador === AZUL ? ROJO : AZUL];
+    var oponente = jugador === AZUL ? ROJO : AZUL;
+    var diff = (estado.puntos[jugador] - estado.puntos[oponente]) * 10;
+    var n = estado.tamano;
+    var cajasRiesgo = 0;
+    for (var f = 0; f < n; f++) {
+        for (var c = 0; c < n; c++) {
+            if (estado.cajas[f][c] === null && contarLados(estado, f, c) === 3) {
+                cajasRiesgo++;
+            }
+        }
+    }
+    return diff - cajasRiesgo * 2;
 }
 
 // Explora el árbol de movimientos hasta profundidad niveles

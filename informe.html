@@ -413,7 +413,6 @@ $$h(\text{estado},\, p) = 10 \cdot \bigl(\text{puntos}(p) - \text{puntos}(\overl
         <th>Derrotas</th>
         <th>Tasa victoria</th>
         <th>t/mov IA (ms)</th>
-        <th>Nodos/mov IA</th>
     </tr>
 </thead>
 <tbody id="results-tbody"></tbody>
@@ -436,12 +435,6 @@ $$h(\text{estado},\, p) = 10 \cdot \bigl(\text{puntos}(p) - \text{puntos}(\overl
     <figcaption>Figura 2. Tiempo promedio por movimiento de la IA (ms).</figcaption>
 </figure>
 
-<figure>
-    <div class="chart-wrap">
-        <canvas id="chart-nodos" height="220"></canvas>
-    </div>
-    <figcaption>Figura 3. Nodos del árbol explorados por movimiento de la IA.</figcaption>
-</figure>
 
 <h3 class="subsec">5.4 Verificación de que la solución es óptima</h3>
 <p>
@@ -512,22 +505,6 @@ $$h(\text{estado},\, p) = 10 \cdot \bigl(\text{puntos}(p) - \text{puntos}(\overl
     permitiría implementar estrategias más avanzadas, como el
     <em>double-cross</em>, que es fundamental en el juego experto.
 </p>
-</section>
-
-<!-- ══════════════════ REFERENCIAS ══════════════════ -->
-<section class="refs">
-<h2 class="sec">Referencias</h2>
-<ol>
-    <li>Russell, S., &amp; Norvig, P. (2020).
-        <em>Artificial Intelligence: A Modern Approach</em> (4th ed.).
-        Pearson. Cap. 5 (Adversarial Search).</li>
-    <li>Berlekamp, E. R., Conway, J. H., &amp; Guy, R. K. (2001).
-        <em>Winning Ways for your Mathematical Plays</em> (2nd ed.), Vol. 1.
-        A K Peters. Cap. 16 (Dots-and-Boxes).</li>
-    <li>Knuth, D. E., &amp; Moore, R. W. (1975).
-        An analysis of alpha-beta pruning.
-        <em>Artificial Intelligence</em>, 6(4), 293–326.</li>
-</ol>
 </section>
 
 <footer>
@@ -767,8 +744,7 @@ function renderizarResultados() {
             '<td>' + r.empates + '</td>' +
             '<td class="bm-fail">' + r.derrotas + '</td>' +
             '<td class="' + tasaClass + '"><strong>' + r.tasaVictoria.toFixed(0) + '%</strong></td>' +
-            '<td>' + r.tiempoMedioMs.toFixed(1) + '</td>' +
-            '<td>' + Math.round(r.nodosMedios).toLocaleString() + '</td>';
+            '<td>' + r.tiempoMedioMs.toFixed(1) + '</td>';
         tbody.appendChild(tr);
     });
     document.getElementById('results-table').style.display = '';
@@ -815,24 +791,6 @@ function renderizarResultados() {
         }
     });
 
-    // Figura 3: Nodos por movimiento
-    new Chart(document.getElementById('chart-nodos'), {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Nodos medios por mov IA',
-                data: bmResultados.map(function(r) { return Math.round(r.nodosMedios); }),
-                backgroundColor: 'rgba(0,150,100,.65)',
-                borderColor: '#009664',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: { y: { title: { display: true, text: 'nodos' } } },
-            plugins: { legend: { display: false } }
-        }
-    });
 }
 
 // Mostrar resultados precalculados al cargar

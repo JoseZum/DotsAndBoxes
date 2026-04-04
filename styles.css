@@ -263,3 +263,53 @@ body {
   from { opacity:0; transform: translateY(28px) scale(.96); }
   to   { opacity:1; transform: translateY(0) scale(1); }
 }
+
+/* ── Benchmark modal ─────────────────────────────────────────────────────── */
+.bm-box {
+  background: #1e2130; color: #cdd6f4;
+  border-radius: 18px; padding: 2rem 2.2rem;
+  width: 95%; max-width: 640px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.5);
+  animation: slideUp .3s cubic-bezier(.34,1.56,.64,1);
+}
+.bm-title {
+  font-size: 1.2rem; font-weight: 800;
+  margin-bottom: .4rem; color: #fff;
+}
+.bm-sub {
+  font-size: .83rem; color: #a6b0c3; margin-bottom: 1.1rem;
+}
+.bm-table {
+  width: 100%; border-collapse: collapse;
+  font-size: .82rem; margin-bottom: 1rem;
+}
+.bm-table th {
+  padding: .4rem .6rem; text-align: center;
+  border-bottom: 1px solid #313244; color: #a6b0c3;
+  font-weight: 600; font-size: .76rem;
+}
+.bm-table td {
+  padding: .38rem .6rem; text-align: center;
+  border-bottom: 1px solid #232536;
+}
+.bm-win  { color: #a6e3a1; font-weight: 700; }
+.bm-loss { color: #f38ba8; }
+.bm-note {
+  font-size: .75rem; color: #6c7086;
+  margin-bottom: 1.2rem; margin-top: .2rem;
+}
+.bm-actions { display: flex; gap: .7rem; justify-content: flex-end; }
+.bm-btn {
+  padding: .55rem 1.3rem; border: none; border-radius: 10px;
+  font-weight: 700; font-size: .85rem; cursor: pointer; transition: .15s;
+}
+.bm-btn-primary   { background: #89b4fa; color: #1e2130; }
+.bm-btn-primary:hover { background: #b4d0fb; }
+.bm-progress-track {
+  width: 100%; height: 6px; background: #313244;
+  border-radius: 3px; overflow: hidden; margin-top: 1rem;
+}
+.bm-progress-fill {
+  height: 100%; width: 0; background: #89b4fa;
+  border-radius: 3px; transition: width .2s ease;
+}

@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Informe — MinMax para Dots &amp; Boxes</title>
+
+<!-- Tipografía académica -->
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- KaTeX -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body,{delimiters:[
+            {left:'$$',right:'$$',display:true},
+            {left:'$',right:'$',display:false}]})"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --paper: #fafaf7;
+    --ink:   #1a1a1a;
+    --muted: #555;
+    --rule:  #d0cfc9;
+    --accent:#1a4080;
+    --code-bg:#f0efe8;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
+    font-size: 18px;
+    line-height: 1.7;
+    background: var(--paper);
+    color: var(--ink);
+    padding: 0 1rem;
+}
+
+article {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 80px 0 100px;
+}
+
+header { text-align: center; margin-bottom: 3rem; }
+
+header h1 {
+    font-size: 1.9rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: .6rem;
+}
+
+.authors {
+    font-style: italic;
+    color: var(--muted);
+    font-size: 1rem;
+    margin-bottom: .3rem;
+}
+
+.institution {
+    font-size: .9rem;
+    color: var(--muted);
+}
+
+.header-rule {
+    border: none;
+    border-top: 1.5px solid var(--ink);
+    margin: 1.4rem 0 0;
+}
+
+.abstract {
+    margin: 2rem 0 2.8rem;
+    padding: 0 2.5rem;
+}
+.abstract h2 {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    margin-bottom: .7rem;
+}
+.abstract p {
+    font-size: .95rem;
+    text-align: justify;
+    hyphens: auto;
+}
+
+section { margin-bottom: 2.4rem; }
+
+h2.sec {
+    font-size: 1.22rem;
+    font-weight: 700;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: .25rem;
+    margin-bottom: 1rem;
+    color: var(--ink);
+}
+
+h3.subsec {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 1.4rem 0 .5rem;
+    color: var(--ink);
+}
+
+p { text-align: justify; hyphens: auto; margin-bottom: .8rem; }
+
+code {
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: .82rem;
+    background: var(--code-bg);
+    padding: .1em .35em;
+    border-radius: 3px;
+}
+
+pre {
+    background: var(--code-bg);
+    border-left: 3px solid var(--accent);
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    font-family: 'Fira Code', monospace;
+    font-size: .82rem;
+    line-height: 1.55;
+    margin: 1rem 0;
+}
+
+.tbl-wrap { overflow-x: auto; margin: 1.2rem 0; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .9rem;
+}
+
+table thead tr { border-bottom: 1.5px solid var(--ink); }
+table tfoot tr { border-top:    1.5px solid var(--ink); }
+table th { padding: .45rem .7rem; font-weight: 600; text-align: center; }
+table td { padding: .45rem .7rem; text-align: center; border-bottom: 1px solid var(--rule); }
+table tbody tr:last-child td { border-bottom: none; }
+
+caption {
+    caption-side: top;
+    font-size: .88rem;
+    font-style: italic;
+    color: var(--muted);
+    margin-bottom: .5rem;
+    text-align: center;
+}
+
+figure {
+    margin: 1.8rem 0;
+    text-align: center;
+}
+figcaption {
+    font-size: .88rem;
+    font-style: italic;
+    color: var(--muted);
+    margin-top: .6rem;
+}
+.chart-wrap {
+    position: relative;
+    max-width: 640px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1rem;
+}
+
+#bm-loading {
+    display: flex; align-items: center; gap: 12px;
+    padding: .7rem 1rem;
+    background: #eef3fb;
+    border: 1px solid #b8cde8;
+    border-radius: 5px;
+    font-size: .9rem; color: var(--accent);
+    margin: 1rem 0;
+}
+#bm-loading .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid #b8cde8;
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.bm-ok   { color: #1a7a3a; font-weight: 600; }
+.bm-fail { color: #a01010; font-weight: 600; }
+
+ul, ol { padding-left: 1.4rem; margin-bottom: .8rem; }
+li { margin-bottom: .3rem; }
+
+.refs ol { font-size: .9rem; }
+
+footer {
+    text-align: center;
+    font-size: .82rem;
+    color: var(--muted);
+    border-top: 1px solid var(--rule);
+    padding-top: 1.2rem;
+    margin-top: 3rem;
+}
+</style>
+</head>
+<body>
+<article>
+
+<!-- ══════════════════ ENCABEZADO ══════════════════ -->
+<header>
+    <h1>Algoritmo MinMax aplicado al juego <em>Dots &amp; Boxes</em></h1>
+    <p class="authors">José Fabián Zumbado &mdash; Jeremmy Aguilar</p>
+    <p class="institution">Inteligencia Artificial, Tarea 1 &bull; Instituto Tecnológico de Costa Rica &bull; Abril 2026</p>
+    <hr class="header-rule">
+</header>
+
+<!-- ══════════════════ RESUMEN ══════════════════ -->
+<div class="abstract">
+    <h2>Resumen</h2>
+    <p>
+        Se implementó el algoritmo MinMax con poda alpha-beta para resolver
+        el juego <em>Dots &amp; Boxes</em> (Puntos y Cajas), donde dos jugadores
+        se turnan para trazar líneas en una cuadrícula y capturar cajas.
+        El informe describe la implementación, la heurística utilizada y el
+        desempeño del algoritmo en tableros de 2×2, 3×3 y 4×4.
+        Los resultados muestran que la IA gana consistentemente contra un
+        oponente aleatorio, con tiempos de respuesta apropiados para
+        uso interactivo en todos los tamaños evaluados.
+    </p>
+</div>
+
+<!-- ══════════════════ 1. INTRODUCCIÓN ══════════════════ -->
+<section>
+<h2 class="sec">1. Introducción</h2>
+<p>
+    <em>Dots &amp; Boxes</em> es un juego de mesa clásico en el que dos jugadores
+    se turnan para trazar segmentos entre puntos de una cuadrícula.
+    Cuando un jugador completa los cuatro lados de una caja, la captura y anota un punto,
+    y tiene derecho a trazar otra línea en el mismo turno.
+    Gana quien capture más cajas al final.
+</p>
+<p>
+    Aunque las reglas son simples, el juego tiene profundidad estratégica considerable:
+    un jugador puede "regalar" cajas al adversario si no planifica con cuidado.
+    Se implementó MinMax con poda alpha-beta para que la IA elija siempre
+    el movimiento que maximiza su ventaja considerando todas las respuestas posibles
+    del oponente hasta una profundidad determinada.
+</p>
+</section>
+
+<!-- ══════════════════ 2. DESCRIPCIÓN DEL PROBLEMA ══════════════════ -->
+<section>
+<h2 class="sec">2. Descripción del problema</h2>
+
+<h3 class="subsec">2.1 Representación del tablero</h3>
+<p>
+    El tablero de tamaño $n \times n$ tiene $n^2$ cajas, $(n+1) \times n$ segmentos
+    horizontales y $n \times (n+1)$ segmentos verticales, para un total de
+    $2n(n+1)$ segmentos posibles.
+    El estado del juego se representa con tres matrices:
+    <code>lineasH</code>, <code>lineasV</code> y <code>cajas</code>,
+    más el marcador y el turno actual.
+</p>
+
+<h3 class="subsec">2.2 Movimientos y capturas</h3>
+<p>
+    Un movimiento consiste en colocar una línea en cualquier segmento vacío.
+    Si al colocar la línea se completan los cuatro lados de una o más cajas,
+    el jugador las captura y juega de nuevo.
+    Un turno termina cuando el jugador no captura ninguna caja.
+</p>
+
+<h3 class="subsec">2.3 Por qué se necesita MinMax</h3>
+<p>
+    En un tablero 3×3 hay 24 líneas posibles. El espacio de búsqueda total
+    es $24!$ en el peor caso, lo cual hace imposible la búsqueda exhaustiva.
+    MinMax reduce drásticamente este espacio explorando solo hasta una profundidad
+    fija, y la poda alpha-beta elimina ramas que no pueden cambiar la decisión.
+</p>
+</section>
+
+<!-- ══════════════════ 3. IMPLEMENTACIÓN ══════════════════ -->
+<section>
+<h2 class="sec">3. Implementación</h2>
+
+<h3 class="subsec">3.1 Árbol de juego y turnos</h3>
+<p>
+    La función <code>minmax</code> recorre el árbol de juego recursivamente.
+    En cada nivel se llama a <code>obtenerMovimientos</code> para listar los
+    segmentos disponibles y a <code>aplicarMovimiento</code> para generar el
+    estado hijo. Una particularidad importante: si el jugador captura una caja,
+    el turno no cambia, lo que la implementación maneja verificando
+    <code>nuevoEstado.turno === jugador</code> para decidir si el siguiente
+    nodo es maximizador o minimizador.
+</p>
+
+<h3 class="subsec">3.2 Poda alpha-beta</h3>
+<p>
+    Los parámetros $\alpha$ y $\beta$ se propagan por el árbol.
+    Cuando en un nodo minimizador el valor cae por debajo de $\alpha$,
+    se corta esa rama porque el maximizador ya tiene una opción mejor;
+    el razonamiento simétrico aplica en nodos maximizadores con $\beta$.
+    Esto reduce el número de nodos evaluados de $O(b^d)$ a $O(b^{d/2})$
+    en el caso ideal con buena ordenación de movimientos.
+</p>
+
+<pre>function minmax(estado, prof, esMax, jugador, α, β) {
+    if (estado.terminado || prof === 0)
+        return heuristica(estado, jugador);
+
+    if (esMax) {
+        var max = -Infinity;
+        for cada movimiento:
+            var v = minmax(hijo, prof-1, hijo.turno===jugador, jugador, α, β);
+            if (v > max) max = v;
+            if (v > α)   α   = v;
+            if (α >= β)  break;          // poda β
+        return max;
+    } else { /* simétrico con min y β */ }
+}</pre>
+
+<h3 class="subsec">3.3 Profundidades por tamaño de tablero</h3>
+<p>
+    Se eligió una profundidad distinta para cada tamaño de tablero,
+    equilibrando calidad de juego y tiempo de respuesta:
+</p>
+<div class="tbl-wrap">
+<table>
+<caption>Tabla 1. Profundidades de búsqueda por tamaño de tablero.</caption>
+<thead>
+    <tr><th>Tablero</th><th>Cajas</th><th>Líneas totales</th><th>Profundidad</th></tr>
+</thead>
+<tbody>
+    <tr><td>2×2</td><td>4</td><td>12</td><td>14 (árbol completo)</td></tr>
+    <tr><td>3×3</td><td>9</td><td>24</td><td>8</td></tr>
+    <tr><td>4×4</td><td>16</td><td>40</td><td>6</td></tr>
+</tbody>
+</table>
+</div>
+<p>
+    Para 2×2, la profundidad 14 excede las 12 líneas totales del juego,
+    lo que equivale a juego perfecto (MinMax explora todas las posibilidades).
+</p>
+</section>
+
+<!-- ══════════════════ 4. HEURÍSTICA ══════════════════ -->
+<section>
+<h2 class="sec">4. Heurística utilizada</h2>
+
+<h3 class="subsec">4.1 Formulación</h3>
+<p>
+    La función de evaluación combina dos componentes:
+</p>
+$$h(\text{estado},\, p) = 10 \cdot \bigl(\text{puntos}(p) - \text{puntos}(\overline{p})\bigr) - 2 \cdot \text{riesgo}$$
+<p>
+    donde <em>riesgo</em> es el número de cajas sin capturar que ya tienen
+    tres lados trazados. Esas cajas son "regalos" que el adversario puede
+    tomar en su próximo turno sin ningún esfuerzo.
+</p>
+
+<h3 class="subsec">4.2 Por qué funciona</h3>
+<p>
+    El factor 10 sobre la diferencia de puntos asegura que capturar una caja
+    siempre sea preferible a evitar crear cajas de riesgo.
+    La penalización de −2 por caja en riesgo refleja que cada una de ellas
+    equivale a medio punto de desventaja esperada: si el adversario la captura,
+    la diferencia de puntos cae en 1, pero la probabilidad de que lo haga
+    es alta (depende de si tiene algún movimiento disponible que no abra
+    más cajas aún).
+</p>
+
+<h3 class="subsec">4.3 Limitaciones</h3>
+<p>
+    La heurística no detecta cadenas largas de cajas abiertas, que son
+    clave en la estrategia avanzada de Dots &amp; Boxes.
+    Una función de evaluación más refinada contaría las cadenas y
+    aplicaría la regla del "doble cruce" para estimar mejor el resultado.
+</p>
+</section>
+
+<!-- ══════════════════ 5. PRUEBAS Y RESULTADOS ══════════════════ -->
+<section>
+<h2 class="sec">5. Pruebas y resultados</h2>
+
+<h3 class="subsec">5.1 Configuraciones de prueba</h3>
+<p>
+    Se evaluó el algoritmo con tres tamaños de tablero.
+    En cada configuración se jugaron varias partidas completas entre
+    la IA (jugando como Rojo, segundo jugador) y un oponente que
+    elige movimientos al azar (Azul, primer jugador).
+    Los resultados a continuación fueron generados con <code>node generar-benchmark.js</code>
+    y se muestran como datos precalculados (no se re-ejecutan al abrir el informe).
+</p>
+
+<h3 class="subsec">5.2 Resultados medidos</h3>
+
+<div class="tbl-wrap">
+<table id="results-table">
+<caption>Tabla 2. Resultados del benchmark (precalculados con Node.js).</caption>
+<thead>
+    <tr>
+        <th>Tablero</th>
+        <th>Partidas</th>
+        <th>Victorias IA</th>
+        <th>Empates</th>
+        <th>Derrotas</th>
+        <th>Tasa victoria</th>
+        <th>t/mov IA (ms)</th>
+        <th>Nodos/mov IA</th>
+    </tr>
+</thead>
+<tbody id="results-tbody"></tbody>
+</table>
+</div>
+
+<h3 class="subsec">5.3 Gráficas de desempeño</h3>
+
+<figure>
+    <div class="chart-wrap">
+        <canvas id="chart-tasa" height="220"></canvas>
+    </div>
+    <figcaption>Figura 1. Tasa de victoria de la IA por tamaño de tablero (%).</figcaption>
+</figure>
+
+<figure>
+    <div class="chart-wrap">
+        <canvas id="chart-tiempo" height="220"></canvas>
+    </div>
+    <figcaption>Figura 2. Tiempo promedio por movimiento de la IA (ms).</figcaption>
+</figure>
+
+<figure>
+    <div class="chart-wrap">
+        <canvas id="chart-nodos" height="220"></canvas>
+    </div>
+    <figcaption>Figura 3. Nodos del árbol explorados por movimiento de la IA.</figcaption>
+</figure>
+
+<h3 class="subsec">5.4 Verificación de que la solución es óptima</h3>
+<p>
+    Para el tablero 2×2, la profundidad de búsqueda (14) supera el número
+    total de líneas del juego (12), lo que garantiza que MinMax explora
+    la totalidad del árbol y toma la decisión perfecta en cada turno.
+    La tasa de victoria cercana al 100% en 2×2 confirma este comportamiento:
+    contra un oponente aleatorio, la IA prácticamente nunca pierde.
+</p>
+<p>
+    Para tableros más grandes, la profundidad limitada introduce cierta
+    suboptimalidad, pero sigue siendo suficiente para vencer sistemáticamente
+    a un oponente sin estrategia.
+</p>
+</section>
+
+<!-- ══════════════════ 6. DECISIONES DE DISEÑO Y RETOS ══════════════════ -->
+<section>
+<h2 class="sec">6. Decisiones de diseño y retos</h2>
+
+<h3 class="subsec">Clonación del estado en cada nodo</h3>
+<p>
+    Cada llamada a <code>aplicarMovimiento</code> crea una copia profunda del
+    estado mediante <code>clonarEstado</code>. Esto simplifica la implementación
+    porque no se necesita deshacer movimientos, pero implica un costo de memoria
+    proporcional al número de nodos explorados. En tableros 4×4 con alta
+    profundidad, este costo puede volverse notable.
+</p>
+
+<h3 class="subsec">Captura y turno extra</h3>
+<p>
+    La regla del turno extra al capturar una caja hace que el árbol de juego
+    no sea estrictamente alternado. Implementarlo correctamente requirió
+    verificar <code>nuevoEstado.turno === jugador</code> en lugar de simplemente
+    alternar el booleano <code>esMaximizador</code>. Un error aquí habría
+    producido una IA que no aprovecha las capturas en cadena.
+</p>
+
+<h3 class="subsec">Reto: profundidad en tableros grandes</h3>
+<p>
+    En 4×4 con 40 líneas posibles al inicio, incluso con profundidad 6 y
+    poda alpha-beta el primer movimiento puede tardar varios cientos de
+    milisegundos. Se eligió profundidad 6 como el valor que mantiene el tiempo
+    de respuesta por debajo de un segundo mientras todavía produce juego de calidad.
+    Una mejora futura sería usar ordenación de movimientos (primero los que
+    capturan cajas) para que la poda alpha-beta sea más efectiva desde el inicio.
+</p>
+</section>
+
+<!-- ══════════════════ 7. CONCLUSIONES ══════════════════ -->
+<section>
+<h2 class="sec">7. Conclusiones</h2>
+<p>
+    MinMax con poda alpha-beta ofrece una IA eficaz para Dots &amp; Boxes:
+    juega de forma casi óptima en tableros pequeños y mantiene ventaja clara
+    contra oponentes sin estrategia en tableros medianos y grandes.
+    Las gráficas muestran que el tiempo de respuesta crece con el tamaño
+    del tablero, pero se mantiene dentro de rangos aceptables para uso interactivo
+    en los tres tamaños evaluados.
+</p>
+<p>
+    La heurística de diferencia de puntos penalizada por cajas en riesgo captura
+    el concepto central del juego: no solo importa cuántas cajas se tienen ahora,
+    sino también cuántas se van a regalar al adversario en el siguiente turno.
+</p>
+<p>
+    Como mejora futura, incorporar análisis de cadenas de cajas abiertas
+    permitiría implementar estrategias más avanzadas, como el
+    <em>double-cross</em>, que es fundamental en el juego experto.
+</p>
+</section>
+
+<!-- ══════════════════ REFERENCIAS ══════════════════ -->
+<section class="refs">
+<h2 class="sec">Referencias</h2>
+<ol>
+    <li>Russell, S., &amp; Norvig, P. (2020).
+        <em>Artificial Intelligence: A Modern Approach</em> (4th ed.).
+        Pearson. Cap. 5 (Adversarial Search).</li>
+    <li>Berlekamp, E. R., Conway, J. H., &amp; Guy, R. K. (2001).
+        <em>Winning Ways for your Mathematical Plays</em> (2nd ed.), Vol. 1.
+        A K Peters. Cap. 16 (Dots-and-Boxes).</li>
+    <li>Knuth, D. E., &amp; Moore, R. W. (1975).
+        An analysis of alpha-beta pruning.
+        <em>Artificial Intelligence</em>, 6(4), 293–326.</li>
+</ol>
+</section>
+
+<footer>
+    José Fabián Zumbado &amp; Jeremmy Aguilar &mdash;
+    Inteligencia Artificial, Tarea 1 &mdash;
+    Instituto Tecnológico de Costa Rica &mdash; Abril 2026
+</footer>
+
+</article>
+
+<!-- Datos precalculados del benchmark -->
+<script src="benchmark-datos.js"></script>
+
+<!-- ══════════════════ LÓGICA DEL JUEGO (incrustada para benchmark standalone) ══════════════════ -->
+<script>
+// ── Constantes ────────────────────────────────────────────────────────────────
+var AZUL = 'azul';
+var ROJO = 'rojo';
+
+// ── Utilidades del juego (de logicaJuego.js) ─────────────────────────────────
+function crearEstado(tamano) {
+    var filas    = tamano + 1;
+    var columnas = tamano + 1;
+    return {
+        tamano: tamano,
+        lineasH: crearMatriz(filas, tamano, null),
+        lineasV: crearMatriz(tamano, columnas, null),
+        cajas:   crearMatriz(tamano, tamano, null),
+        puntos:  { azul: 0, rojo: 0 },
+        turno:   AZUL,
+        terminado: false,
+        ganador: null
+    };
+}
+
+function crearMatriz(filas, columnas, valor) {
+    var matriz = [];
+    for (var f = 0; f < filas; f++) {
+        matriz[f] = [];
+        for (var c = 0; c < columnas; c++) matriz[f][c] = valor;
+    }
+    return matriz;
+}
+
+function clonarEstado(estado) {
+    return {
+        tamano:   estado.tamano,
+        lineasH:  estado.lineasH.map(function(f) { return f.slice(); }),
+        lineasV:  estado.lineasV.map(function(f) { return f.slice(); }),
+        cajas:    estado.cajas.map(function(f)   { return f.slice(); }),
+        puntos:   { azul: estado.puntos.azul, rojo: estado.puntos.rojo },
+        turno:    estado.turno,
+        terminado: estado.terminado,
+        ganador:  estado.ganador
+    };
+}
+
+function obtenerMovimientos(estado) {
+    var movimientos = [], n = estado.tamano;
+    for (var f = 0; f <= n; f++)
+        for (var c = 0; c < n; c++)
+            if (estado.lineasH[f][c] === null)
+                movimientos.push({ tipo: 'h', fila: f, columna: c });
+    for (var f = 0; f < n; f++)
+        for (var c = 0; c <= n; c++)
+            if (estado.lineasV[f][c] === null)
+                movimientos.push({ tipo: 'v', fila: f, columna: c });
+    return movimientos;
+}
+
+function aplicarMovimiento(estado, movimiento) {
+    var nuevoEstado = clonarEstado(estado);
+    var jugador = nuevoEstado.turno;
+    if (movimiento.tipo === 'h')
+        nuevoEstado.lineasH[movimiento.fila][movimiento.columna] = jugador;
+    else
+        nuevoEstado.lineasV[movimiento.fila][movimiento.columna] = jugador;
+
+    var capturadas = verificarCapturas(nuevoEstado, movimiento, jugador);
+
+    var totalCajas = nuevoEstado.puntos.azul + nuevoEstado.puntos.rojo;
+    if (totalCajas === nuevoEstado.tamano * nuevoEstado.tamano) {
+        nuevoEstado.terminado = true;
+        nuevoEstado.ganador = nuevoEstado.puntos.azul > nuevoEstado.puntos.rojo ? AZUL
+                            : nuevoEstado.puntos.rojo > nuevoEstado.puntos.azul ? ROJO
+                            : 'empate';
+    }
+
+    if (capturadas === 0) nuevoEstado.turno = (jugador === AZUL) ? ROJO : AZUL;
+    return nuevoEstado;
+}
+
+function verificarCapturas(estado, movimiento, jugador) {
+    var capturas = 0, n = estado.tamano, candidatos = [];
+    if (movimiento.tipo === 'h') {
+        if (movimiento.fila > 0) candidatos.push([movimiento.fila - 1, movimiento.columna]);
+        if (movimiento.fila < n) candidatos.push([movimiento.fila,     movimiento.columna]);
+    } else {
+        if (movimiento.columna > 0) candidatos.push([movimiento.fila, movimiento.columna - 1]);
+        if (movimiento.columna < n) candidatos.push([movimiento.fila, movimiento.columna]);
+    }
+    for (var i = 0; i < candidatos.length; i++) {
+        var fc = candidatos[i][0], cc = candidatos[i][1];
+        if (estado.cajas[fc][cc] === null && cajaCompleta(estado, fc, cc)) {
+            estado.cajas[fc][cc] = jugador;
+            estado.puntos[jugador]++;
+            capturas++;
+        }
+    }
+    return capturas;
+}
+
+function cajaCompleta(estado, fc, cc) {
+    return estado.lineasH[fc][cc]     !== null &&
+           estado.lineasH[fc + 1][cc] !== null &&
+           estado.lineasV[fc][cc]     !== null &&
+           estado.lineasV[fc][cc + 1] !== null;
+}
+
+function contarLados(estado, fc, cc) {
+    var lados = 0;
+    if (estado.lineasH[fc][cc]     !== null) lados++;
+    if (estado.lineasH[fc + 1][cc] !== null) lados++;
+    if (estado.lineasV[fc][cc]     !== null) lados++;
+    if (estado.lineasV[fc][cc + 1] !== null) lados++;
+    return lados;
+}
+
+// ── MinMax con contador de nodos (para informe) ───────────────────────────────
+var PROFUNDIDAD_POR_TAMANO = { 2: 14, 3: 8, 4: 6 };
+var _nodos = 0;
+
+function _heuristica(estado, jugador) {
+    var oponente = jugador === AZUL ? ROJO : AZUL;
+    var diff = (estado.puntos[jugador] - estado.puntos[oponente]) * 10;
+    var n = estado.tamano, cajasRiesgo = 0;
+    for (var f = 0; f < n; f++)
+        for (var c = 0; c < n; c++)
+            if (estado.cajas[f][c] === null && contarLados(estado, f, c) === 3)
+                cajasRiesgo++;
+    return diff - cajasRiesgo * 2;
+}
+
+function _minmax(estado, profundidad, esMaximizador, jugador, alpha, beta) {
+    _nodos++;
+    if (estado.terminado || profundidad === 0)
+        return _heuristica(estado, jugador);
+
+    var movs = obtenerMovimientos(estado);
+
+    if (esMaximizador) {
+        var maxVal = -Infinity;
+        for (var i = 0; i < movs.length; i++) {
+            var hijo = aplicarMovimiento(estado, movs[i]);
+            var v = _minmax(hijo, profundidad - 1, hijo.turno === jugador, jugador, alpha, beta);
+            if (v > maxVal) maxVal = v;
+            if (v > alpha)  alpha  = v;
+            if (alpha >= beta) break;
+        }
+        return maxVal;
+    } else {
+        var minVal = Infinity;
+        for (var i = 0; i < movs.length; i++) {
+            var hijo = aplicarMovimiento(estado, movs[i]);
+            var v = _minmax(hijo, profundidad - 1, hijo.turno === jugador, jugador, alpha, beta);
+            if (v < minVal) minVal = v;
+            if (v < beta)   beta   = v;
+            if (beta <= alpha) break;
+        }
+        return minVal;
+    }
+}
+
+function mejorMovimientoInforme(estado, jugador) {
+    _nodos = 0;
+    var movs = obtenerMovimientos(estado);
+    if (!movs.length) return { mov: null, nodos: 0 };
+    var prof = PROFUNDIDAD_POR_TAMANO[estado.tamano];
+    var mejorVal = -Infinity, mejorMov = null;
+    for (var i = 0; i < movs.length; i++) {
+        var hijo = aplicarMovimiento(estado, movs[i]);
+        var v = _minmax(hijo, prof, hijo.turno === jugador, jugador, -Infinity, Infinity);
+        if (v > mejorVal) { mejorVal = v; mejorMov = movs[i]; }
+    }
+    return { mov: mejorMov, nodos: _nodos };
+}
+
+// ── Oponente aleatorio ────────────────────────────────────────────────────────
+function movAleatorio(estado) {
+    var movs = obtenerMovimientos(estado);
+    return movs.length ? movs[Math.floor(Math.random() * movs.length)] : null;
+}
+
+// ── Simulación de una partida ─────────────────────────────────────────────────
+function simularPartidaInforme(tamano) {
+    var estado = crearEstado(tamano);
+    var tiempos = [], nodos = [];
+
+    while (!estado.terminado) {
+        var mov;
+        if (estado.turno === ROJO) {
+            var t0 = performance.now();
+            var res = mejorMovimientoInforme(estado, ROJO);
+            tiempos.push(performance.now() - t0);
+            nodos.push(res.nodos);
+            mov = res.mov;
+        } else {
+            mov = movAleatorio(estado);
+        }
+        if (!mov) break;
+        estado = aplicarMovimiento(estado, mov);
+    }
+
+    var avg = function(arr) {
+        return arr.length ? arr.reduce(function(a,b){return a+b;},0) / arr.length : 0;
+    };
+    return {
+        ganador:      estado.ganador,
+        tiempoMedioIA: avg(tiempos),
+        nodosMediosIA: avg(nodos)
+    };
+}
+
+// bmResultados viene de benchmark-datos.js (precalculado)
+
+// ── Renderizado de resultados ─────────────────────────────────────────────────
+function renderizarResultados() {
+    var tbody = document.getElementById('results-tbody');
+    tbody.innerHTML = '';
+    bmResultados.forEach(function(r) {
+        var tr = document.createElement('tr');
+        var tasaClass = r.tasaVictoria >= 80 ? 'bm-ok' : (r.tasaVictoria < 50 ? 'bm-fail' : '');
+        tr.innerHTML =
+            '<td>' + r.nombre + '</td>' +
+            '<td>' + r.nPartidas + '</td>' +
+            '<td class="bm-ok">'  + r.victorias + '</td>' +
+            '<td>' + r.empates + '</td>' +
+            '<td class="bm-fail">' + r.derrotas + '</td>' +
+            '<td class="' + tasaClass + '"><strong>' + r.tasaVictoria.toFixed(0) + '%</strong></td>' +
+            '<td>' + r.tiempoMedioMs.toFixed(1) + '</td>' +
+            '<td>' + Math.round(r.nodosMedios).toLocaleString() + '</td>';
+        tbody.appendChild(tr);
+    });
+    document.getElementById('results-table').style.display = '';
+
+    var labels  = bmResultados.map(function(r) { return r.nombre; });
+    var AZUL_C  = 'rgba(26,64,128,.72)';
+    var AZUL_B  = '#1a4080';
+
+    // Figura 1: Tasa de victoria
+    new Chart(document.getElementById('chart-tasa'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Tasa de victoria IA (%)',
+                data: bmResultados.map(function(r) { return r.tasaVictoria.toFixed(1); }),
+                backgroundColor: AZUL_C,
+                borderColor: AZUL_B,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: { y: { min: 0, max: 100, title: { display: true, text: '%' } } },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // Figura 2: Tiempo por movimiento
+    new Chart(document.getElementById('chart-tiempo'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Tiempo medio por mov IA (ms)',
+                data: bmResultados.map(function(r) { return r.tiempoMedioMs.toFixed(2); }),
+                backgroundColor: 'rgba(100,60,180,.7)',
+                borderColor: '#6433b4',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: { y: { title: { display: true, text: 'ms' } } },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // Figura 3: Nodos por movimiento
+    new Chart(document.getElementById('chart-nodos'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Nodos medios por mov IA',
+                data: bmResultados.map(function(r) { return Math.round(r.nodosMedios); }),
+                backgroundColor: 'rgba(0,150,100,.65)',
+                borderColor: '#009664',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: { y: { title: { display: true, text: 'nodos' } } },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+// Mostrar resultados precalculados al cargar
+window.addEventListener('load', function() {
+    renderizarResultados();
+});
+</script>
+</body>
+</html>

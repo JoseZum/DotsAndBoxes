@@ -1,5 +1,4 @@
 // Diferencia de puntos (×10) penalizada por cajas con 3 lados (el oponente puede capturarlas).
-// Esto hace que la IA evite dejar cajas "regaladas" al rival.
 function heuristica(estado, jugador) {
     var oponente = jugador === AZUL ? ROJO : AZUL;
     var diff = (estado.puntos[jugador] - estado.puntos[oponente]) * 10;

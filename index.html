@@ -40,7 +40,10 @@
 <div id="game-screen" class="hidden">
   <header class="top-bar">
     <h2 class="title">Dots &amp; Boxes</h2>
-    <button class="btn-outline" onclick="mostrarConfiguracion()">Nueva partida</button>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn-outline" onclick="runBenchmarks()">Benchmark</button>
+      <button class="btn-outline" onclick="mostrarConfiguracion()">Nueva partida</button>
+    </div>
   </header>
 
   <div class="score-panel">
@@ -92,8 +95,13 @@
   <footer class="foot">MinMax α‑β · Dots &amp; Boxes</footer>
 </div>
 
+<!-- Modal de benchmark -->
+<div id="bm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);
+     z-index:9000;align-items:center;justify-content:center;"></div>
+
 <script src="logicaJuego.js"></script>
 <script src="minmax.js"></script>
+<script src="benchmark.js"></script>
 <script src="ui.js"></script>
 </body>
 </html>
